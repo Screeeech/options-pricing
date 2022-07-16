@@ -11,10 +11,6 @@ def monte_expression(s, delt, mu, sigma):
     return s + mu * s * delt + sigma * s * random_function() * np.sqrt(delt)
 
 
-def payoff(df, k):
-    return np.max([df["price"].iloc[-1] - k, 0])
-
-
 def create_monte_carlo(init_price, end, mu=.12, sigma=.7, n=256):
     pricehist = np.zeros(n)
     pricehist[0] = init_price
@@ -26,8 +22,8 @@ def create_monte_carlo(init_price, end, mu=.12, sigma=.7, n=256):
 
 
 def price_estimate(r, k, m, init_price, end, sigma=.7, n=256):
-    f = lambda x: np.max([create_monte_carlo(init_price, end, mu=r, sigma=sigma, n=n)[-1] - x, 0])
-    k_list = np.ones_like(k, shape=m)
+    f = lambda x: np.max((create_monte_carlo(init_price, end, mu=r, sigma=sigma, n=n)[-1] - x, 0))
+    k_list = np.full(m, k)
     k_list = list(map(f, k_list))
     m_avg = np.mean(k_list)
     return (1 + r * (end/n))**-n * m_avg
