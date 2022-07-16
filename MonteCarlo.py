@@ -16,20 +16,19 @@ def payoff(df, k):
 
 
 def create_monte_carlo(init_price, end, mu=.12, sigma=.7, n=256):
-    p_df = pd.DataFrame(columns=["time", "price"])
-
-    p_df.loc[0] = [0, init_price]
+    pricehist = np.zeros(n)
+    pricehist[0] = init_price
 
     for i in range(1, n):
-        p_df.loc[i] = [end * (i / n), monte_expression(p_df["price"][i - 1], end / n, mu, sigma)]
+        pricehist[i] = monte_expression(pricehist[i - 1], end / n, mu, sigma)
 
-    return p_df
+    return pricehist
 
 
-def premium_estimate(r, m, init_price, end, sigma=.7, n=256):
-    f = lambda k: np.max([create_monte_carlo(init_price, end, mu=r, sigma=sigma, n=n)["price"].iloc[-1] - k, 0])
-    k_list = np.arange(1,m+1)
-    k_list = list(map(f,k_list))
+def price_estimate(r, k, m, init_price, end, sigma=.7, n=256):
+    f = lambda x: np.max([create_monte_carlo(init_price, end, mu=r, sigma=sigma, n=n)[-1] - x, 0])
+    k_list = np.ones_like(k, shape=m)
+    k_list = list(map(f, k_list))
     m_avg = np.mean(k_list)
     return (1 + r * (end/n))**-n * m_avg
 
@@ -39,4 +38,4 @@ if __name__ == '__main__':
     plt.plot(p_df["time"], p_df["price"])
     plt.show()
     '''
-    print(premium_estimate(.06, 100000, 40, 5/12, sigma=.2, n=254))
+    print(price_estimate(.06, 50, 1000, 40, 5/12, sigma=.2, n=254))
