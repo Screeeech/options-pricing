@@ -1,0 +1,69 @@
+import numpy as np
+from scipy import integrate
+import history_analysis as hanal
+from options_pricer import symbol_parts, price_options
+
+
+def caculate_risk(s, bets):
+    risk = []
+    for i in range(bets.shape[0]):
+        risk.append((symbol_parts(bets.iloc[i].contractSymbol)[3] - s + bets.iloc[i]["ask"]) / s)
+
+    bets["risk"] = risk
+
+
+def return_at_s(s, x, k):
+    return np.maximum(s - x, 0) - k
+
+
+def return_of_bets_at_s(bets, s):
+    return np.sum([return_at_s(s, symbol_parts(bets.iloc[i]["contractSymbol"])[3], bets.iloc[i]["ask"]) for i in
+                   range(bets.shape[0])])
+
+
+# Do not use, integration does not work with this function
+# Use lreimann()
+def returns_over_s(s, mu, sigma, bets):
+    return integrate.quad(lambda x: return_of_bets_at_s(bets, x), s * (1 + mu + sigma), s * (1 + mu - sigma))
+
+
+def lreimann(lbound, ubound, bets, delx):
+    x = np.linspace(lbound, ubound, int(delx * (ubound - lbound)))
+    return np.sum([return_of_bets_at_s(bets, x[i]) / delx for i in range(len(x) - 1)])
+
+
+def find_max_integral(bets, function):
+    beg = 0
+    end = bets.shape[0]
+
+    result = -1
+    while beg != end:
+        mid = (beg + end) // 2
+        if function(mid) > function(end):
+            end = mid
+
+        else:
+            beg = mid + 1
+        result = beg
+
+    return result
+
+
+def risk_cutoff(ticker, s, bets, sigma_range=(-1, 1), dollar_resolution=20):
+    # bets = price_options(ticker, "2022-08-26", .091)
+    caculate_risk(s, bets)
+    bets.sort_values("risk")
+
+    dollar_resolution = np.minimum(dollar_resolution, 100)
+    mu, sigma = hanal.get_stats(ticker, 1)
+    max_int = find_max_integral(bets, lambda m: lreimann(173.03*(1+mu+(sigma_range[0]*sigma)), 173.03*(1+mu+(sigma_range[1]*sigma)),
+                                bets.iloc[:m], dollar_resolution))
+
+    return max_int
+
+
+"""
+priced_options = price_options("aapl", "2022-08-26", .091)
+cutoff = risk_cutoff("aapl", 171.52, priced_options)
+print(cutoff)
+"""
