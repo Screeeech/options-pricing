@@ -2,6 +2,7 @@ import numpy as np
 from scipy import integrate
 import history_analysis as hanal
 from options_pricer import symbol_parts, price_options
+from scipy.stats import norm
 
 
 def caculate_risk(s, bets):
@@ -21,6 +22,8 @@ def return_of_bets_at_s(bets, s):
                    range(bets.shape[0])])
 
 
+
+
 # Do not use, integration does not work with this function
 # Use lreimann()
 def returns_over_s(s, mu, sigma, bets):
@@ -30,6 +33,16 @@ def returns_over_s(s, mu, sigma, bets):
 def lreimann(lbound, ubound, bets, delx):
     x = np.linspace(lbound, ubound, int(delx * (ubound - lbound)))
     return np.sum([return_of_bets_at_s(bets, x[i]) / delx for i in range(len(x) - 1)])
+
+def trap_reimann(lbound, ubound, bets, delx, mu, sigma):
+    x = np.linspace(lbound, ubound, int(delx * (ubound - lbound)))
+    base1 = return_of_bets_at_s(bets, x[0])
+    integral = 0
+    for i in range(len(x) - 1):
+        base2 = return_of_bets_at_s(bets, x[i+1])
+        integral += .5* (x[i+1] - x[i]) * (base1*norm.pdf(x[i], x[i]*(1+mu),x[i]*sigma) + base2*norm.pdf(x[i+1], x[i+1]*(1+mu), x[i+1] * sigma))
+        base1 = base2
+    return integral
 
 
 def find_max_integral(bets, function):
@@ -47,6 +60,8 @@ def find_max_integral(bets, function):
         result = beg
 
     return result
+
+
 
 
 def risk_cutoff(ticker, s, bets, sigma_range=(-1, 1), dollar_resolution=20):
