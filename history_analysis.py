@@ -18,9 +18,6 @@ def get_stats(ticker, look_back, end=date.today()):
     data = retrive_weekly_data(ticker, look_back, end)
     return np.mean(data["pct change"]), np.std(data["pct change"])
 
-
-
-
 # data = retrive_weekly_data("aapl", 1, end=date.today() - relativedelta(days=5))
 # plt.hist(data["pct change"])
 # plt.show()
