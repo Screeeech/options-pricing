@@ -11,17 +11,19 @@ import pickle
 bets = []
 dow = pd.read_csv("dow.csv")
 
+tn = 1
 for ticker in dow["Symbol"]:
-    print(ticker)
+    print(ticker + " (" + str(tn) + "/" + str(len(dow["Symbol"])) + ")", end='\r', flush=True)
+    tn += 1
     try:
         # maybe we can also return the last price in price_options()
         # that way we don't have to download data again at the end of
         # loop to input s
-        priced_options = price_options(ticker, "2022-09-02", .091)
+        priced_options = price_options(ticker, "2022-09-16", .091)
     except:
         continue
 
-    mu, std = get_stats("aapl", 1, end=date.today() - relativedelta(days=7))
+    mu, std = get_stats("aapl", 1, end=date.today() - relativedelta(days=2))
 
     expected_returns = []
     drops = []

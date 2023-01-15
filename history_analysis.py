@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 def retrive_weekly_data(ticker, look_back, end=date.today()):
     stock_data = yf.download(ticker, (end - relativedelta(years=look_back)).strftime("%Y-%m-%d"),
-                             end.strftime("%Y-%m-%d"), adjusted=True)
+                             end.strftime("%Y-%m-%d"), adjusted=True, progress=False)
     stock_data["pct change"] = stock_data['Adj Close'].pct_change()
     return stock_data.iloc[1:].resample("W", label="right").mean()
 

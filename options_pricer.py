@@ -34,7 +34,7 @@ def option_price(symbol, r):
     t = (t - date.today()).days / 365
     stock_data = yf.download(ticker, (date.today() - relativedelta(days=30)).strftime("%Y-%m-%d"),
                              date.today().strftime("%Y-%m-%d"),
-                             adjusted=True)['Adj Close']
+                             adjusted=True, progress=False)['Adj Close']
     s = stock_data[-1]
     sigma = get_sigma(stock_data)
     d1 = get_d1(sigma, t, s, x, r)
